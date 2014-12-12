@@ -114,7 +114,7 @@ def drawClosingScreen(windowSurface, race, results):
 	secondPlacePos = (0, 350)
 	thirdPlacePos = (0, 600)
 	numSeconds = 0
-	while 1: #numSeconds < 30:
+	while numSeconds < 30:
 		windowSurface.blit(sky, (0,0))
 		windowSurface.blit(firstPlaceText, firstPlacePos)
 		windowSurface.blit(secondPlaceText, secondPlacePos)

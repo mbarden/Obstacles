@@ -40,7 +40,7 @@ class terrainObject(object):
 		return self.__repr__() == arg.__repr__()
 
 	def getScore(self):
-		pass 
+		return 1#self.score
 
 class grass(terrainObject):
 	
@@ -50,8 +50,6 @@ class grass(terrainObject):
 	def __repr__(self):
 		return 'grass'
 	
-	def getScore(self):
-		return self.score
 
 class mountain(terrainObject):
 	
@@ -61,8 +59,6 @@ class mountain(terrainObject):
 	def __repr__(self):
 		return 'mountain'
 	
-	def getScore(self):
-		return self.score
 
 class water(terrainObject):
 	
@@ -72,9 +68,6 @@ class water(terrainObject):
 	def __repr__(self):
 		return 'water'
 	
-	def getScore(self):
-		return self.score
-
 class forest(terrainObject):
 	
 	def __init__(self):
@@ -82,6 +75,4 @@ class forest(terrainObject):
 	
 	def __repr__(self):
 		return 'forest'
-	
-	def getScore(self):
-		return self.score
+                

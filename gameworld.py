@@ -15,7 +15,7 @@ class gameWorld(object):
 	
 	def __init__(self):
 		self.terrains = [Terrain.terrain(), Terrain.terrain(), Terrain.terrain()]
-		self.livingReward = 0
+		self.livingReward = -1.
 		self.discount = 0.95
 		self.noise = 0
 		self.startState = State.state()
@@ -30,7 +30,7 @@ class gameWorld(object):
 		self.randomAgents = []
 		self.randomAgentIndex = 0
 		self.randomAgentStates = []
-		self.transitionalReward = 1000
+		self.transitionalReward = 1000.
 		self.terminalReward = 2000
 
 	#tested	
@@ -114,15 +114,8 @@ class gameWorld(object):
 			terrain = state.getWorld()
 			manDist = (abs(y - 9) + abs(x - 0))
 			terrainElement = repr(self.terrains[terrain].terrainWorld[x][y])
-			if terrainElement == 'grass':
-				return (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels['grass']) + manDist
-			if terrainElement == 'forest':
-				return (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels['forest']) + manDist
-			if terrainElement == 'water':
-				return (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels['water']) + manDist
-			else:
-				return (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels['mountain']) + manDist
-
+                        rew = (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels[terrainElement]) + manDist #* (2000000. if agent.type == "td" else 1.)
+                        return self.livingReward / (rew * .1)
 	#tested
 	def getStartState(self, terrainNum = 0):
 		return State.state((0,9), terrainNum)
@@ -201,24 +194,21 @@ class gameWorld(object):
 		if state in self.transitionalStates or state == self.terminalState:
 			self.setAgentState(newAgent, self.generateNextStates(state, action))
 		else:
-			if terrainElement == 'grass':
-				chanceToFall = abs(newAgent.skillLevels['grass'] - 1) / 4
-			elif terrainElement == 'water':
-				chanceToFall = abs(newAgent.skillLevels['water'] - 1) / 4
-			elif terrainElement == 'forest':
-				chanceToFall = abs(newAgent.skillLevels['forest'] - 1) / 4
-			else:
-				chanceToFall = abs(newAgent.skillLevels['mountain'] - 1) / 2
+                        chanceToFall = abs(newAgent.skillLevels[terrainElement] - 1) / 2
 			x, y = state.getPosition()
 			chanceToSlideDown = 0.1 - ((0.1 / 10) * (abs(y -  0)))
 			chanceToSlideLeft = 0.1 - ((0.1 / 10) * (abs(x - 9)))
-			if random.random() <= chanceToSlideDown:
-				self.setAgentState(newAgent, State.state((x, min([9, y + 1])), state.getWorld()))
-			elif random.random() <= chanceToSlideLeft:
-				self.setAgentState(newAgent, State.state((max([x - 1, 0]), y), state.getWorld()))
-			elif random.random() <= chanceToFall:
-				self.setAgentState(newAgent, State.state((max([x - 1, 0]), min([9, y + 1])), state.getWorld()))
-			else:
+                        #self.setAgentState(newAgent, self.generateNextStates(state, action))
+                        #return
+			#if random.random() <= chanceToSlideDown:
+			#	self.setAgentState(newAgent, State.state((x, min([9, y + 1])), state.getWorld()))
+
+			#elif random.random() <= chanceToSlideLeft:
+			#	self.setAgentState(newAgent, State.state((max([x - 1, 0]), y), state.getWorld()))
+			#if random.random() <= chanceToFall:
+			#	self.setAgentState(newAgent, State.state((max([x - 1, 0]), min([9, y + 1])), state.getWorld()))
+			#else:
+                        if True:
 				self.setAgentState(newAgent, self.generateNextStates(state, action))
 
 	#tested

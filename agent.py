@@ -93,7 +93,7 @@ class agent(object):
 		self.index = value
 
 	def endTraining(self):
-		self.epsilon = 0.01
+		self.epsilon = 0.02
 		self.alpha = 1.
 		self.discount = 1.
 
@@ -187,7 +187,7 @@ class adpAgent(agent):
 
 class tdAgent(agent):
 	
-    def __init__(self, goalPosition, eps = 0.3, alp = 0.5, gam = 0.9):
+    def __init__(self, goalPosition, eps = 0.5, alp = 0.9, gam = 0.9):
         super(tdAgent, self).__init__()
         self.type = "td"
         self.x, self.y = goalPosition
@@ -197,7 +197,7 @@ class tdAgent(agent):
         self.alpha = alp
         self.discount = gam
         self.its = 0
-        self.weights['finish'] = 1.0
+        self.oldAct = None
         ###Your Code Here :)###
 
     def __dirToVect(self, action):
@@ -221,12 +221,17 @@ class tdAgent(agent):
         dx = self.x - next_x + 1
         norm = 1. / (dx + dy)
 
+#        print (x,y)
+#        if (x,y) == (8,0) or (x,y) == (9,1):
+#            print ((x,y), action), (dx, dy)
+        return dict({(state, action) : 1.})
         if (x,y) != (float('inf'), float('inf')):
 #            feat = dict({state.getTerrainType() : .01})
 #            feat = dict({state : 1.})
             feat = dict({'dy %d' %(dy) : 1.,
                          'dx %d' %(dx) : 1.,
                          'action %s' %(action) : 1.,
+                         'world %d' %(state.getWorld()) : 1.,
                          state.getTerrainType() : 1.})
 #            feat = dict({'dy %d' %(dx) : norm,
 #                         'dx %d' %(dx): norm,
@@ -301,10 +306,13 @@ class tdAgent(agent):
         features = self.__getFeatures(state, action)
 #        self.actions = filter(lambda action : action not in ['west', 'south'], nextActions)
         self.actions = nextActions
+        pos = state.getPosition()
+        qv = self.computeValueFromQValues(nextState)
         difference = reward + \
-                     self.discount * self.computeValueFromQValues(nextState) - \
+                     self.discount * qv - \
                      self.getQValue(state, action)
         #print features
+        #print reward
 #        print reward, difference, [(feature,
 #                                    self.weights.get(feature, 0.) + \
 #                                    self.alpha * difference * features[feature])
@@ -327,4 +335,8 @@ class tdAgent(agent):
         self.actions = actions
         act = self.getAction(state)
         self.oldAct = act
+        pos = state.getPosition()
+        #if pos == (8, 0) or pos == (9,1):# or not self.its % 1000:
+        #    print state, act
         return act
+

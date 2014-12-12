@@ -16,6 +16,7 @@ import copy
 import random
 from collections import defaultdict
 
+#random.seed(1)
 class relayRace(object):
 	
 	def __init__(self):
@@ -311,8 +312,8 @@ for i,ind in enumerate(a.adpRaceOrder):
         print '\n\n'
 '''
 
-'''
-print '---'
+#'''
+#print '---'
 
 
 # display Policy
@@ -346,18 +347,18 @@ for i,ind in enumerate(a.tdRaceOrder):
             print
         print '\n\n'
 
-    printVisited = True
-    if printVisited:
-        for j in range(10):
-            for k in range(10):
-                state = State.state((k,j),i)
-                v = agent.visited[state]
-                if 'finish' in v:
-                    print '    ' + str(v['finish']),
-                else:
-                    print ' %3d/%3d/%3d/%3d ' % (v['north'],v['east'],v['west'],v['south']),
-            print
-        print '\n\n'
+#    printVisited = True
+#    if printVisited:
+#        for j in range(10):
+#            for k in range(10):
+#                state = State.state((k,j),i)
+#                v = agent.visited[state]
+#                if 'finish' in v:
+#                    print '    ' + str(v['finish']),
+#                else:
+#                    print ' %3d/%3d/%3d/%3d ' % (v['north'],v['east'],v['west'],v['south']),
+#            print
+#        print '\n\n'
 
     printQvals = True
     if printQvals:
@@ -375,8 +376,8 @@ for i,ind in enumerate(a.tdRaceOrder):
         print '\n\n'
 
 
-exit()
-'''
+#exit()
+#'''
 
 '''
 # display Terrain
