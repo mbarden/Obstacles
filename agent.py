@@ -48,58 +48,65 @@ def flipCoin( p ):
 
 class agent(object):
 
-	def __init__(self):
-		self.rewardValues = { 'mountain':3, 'forest':4, 'water':4, 'grass':5 }
-		self.skillLevels  = { 'mountain':1, 'forest':1, 'water':1, 'grass':1 }
-		self.index = None
+    def __init__(self):
+        self.rewardValues = { 'mountain':3, 'forest':4, 'water':4, 'grass':5 }
+        self.skillLevels  = { 'mountain':1, 'forest':1, 'water':1, 'grass':1 }
+        self.index = None
+        self.state = None
 
-	def getSkill(self, skill):
-		return self.skillLevels[skill]
+    def getSkill(self, skill):
+        return self.skillLevels[skill]
 
-	def getWaterSkill(self):
-		return self.getSkill('water')
+    def getWaterSkill(self):
+        return self.getSkill('water')
 
-	def getGrassSkill(self):
-		return self.getSkill('grass')
+    def getGrassSkill(self):
+        return self.getSkill('grass')
 
-	def getForestSkill(self):
-		return self.getSkill('forest')
+    def getForestSkill(self):
+        return self.getSkill('forest')
 
-	def getMountainSkill(self):
-		return self.getSkill('mountain')
+    def getMountainSkill(self):
+        return self.getSkill('mountain')
 
-	def setSkill(self, skill, val):
-		self.skillLevels[skill] = val
+    def setSkill(self, skill, val):
+        self.skillLevels[skill] = val
 
-	def setWaterSkill(self, val):
-		self.setSkill('water', val)
+    def setWaterSkill(self, val):
+        self.setSkill('water', val)
 
-	def setGrassSkill(self, val):
-		self.setSkill('grass', val)
+    def setGrassSkill(self, val):
+        self.setSkill('grass', val)
 
-	def setForestSkill(self, val):
-		self.setSkill('forest', val)
+    def setForestSkill(self, val):
+        self.setSkill('forest', val)
 
-	def setMountainSkill(self, val):
-		self.setSkill('mountain', val)
+    def setMountainSkill(self, val):
+        self.setSkill('mountain', val)
 
-	def __eq__(self, arg):
-		return arg.type == self.type and arg.index == self.index
+    def __eq__(self, arg):
+        return arg.type == self.type and arg.index == self.index
 
-	def getIndex(self):
-		return self.index
+    def getIndex(self):
+        return self.index
 
-	def setIndex(self, value):
-		self.index = value
+    def setIndex(self, value):
+        self.index = value
 
-	def endTraining(self):
-		self.epsilon = 0.02
-		self.alpha = 1.
-		self.discount = 1.
+    def getState(self):
+        return self.state
+    
+    def setState(self, state):
+        self.state = state
 
-	
+    def endTraining(self):
+        self.epsilon = 0.02
+        self.alpha = 1.
+        self.discount = 1.
+
+    
 class randomAgent(agent):
-	
+    
     def __init__(self):
         super(randomAgent, self).__init__()
         self.type = "random"
@@ -111,13 +118,13 @@ class randomAgent(agent):
         else:
             filteredActions = filter(lambda n: n == 'north' or n == 'east' or n == 'finish', actions)
         return random.choice(filteredActions)
-	
+    
     def update(self):
         pass
 
 
 class adpAgent(agent):
-	
+    
     def __init__(self, gameworld, all_qstate_results, discount=0.5):
         super(adpAgent, self).__init__()
         self.type = "adp"
@@ -186,7 +193,7 @@ class adpAgent(agent):
 
 
 class tdAgent(agent):
-	
+    
     def __init__(self, goalPosition, eps = 0.5, alp = 0.9, gam = 0.9):
         super(tdAgent, self).__init__()
         self.type = "td"

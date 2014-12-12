@@ -12,232 +12,197 @@ import copy
 import random
 
 class gameWorld(object):
-	
-	def __init__(self):
-		self.terrains = [Terrain.terrain(), Terrain.terrain(), Terrain.terrain()]
-		self.livingReward = -1.
-		self.discount = 0.95
-		self.noise = 0
-		self.startState = State.state()
-		self.transitionalStates = [State.state((9,0), 0), State.state((9,0), 1)]
-		self.terminalState = State.state((9,0), 2)
-		self.adpAgents = []
-		self.adpAgentIndex = 0
-		self.adpAgentStates = []
-		self.tdAgents = []
-		self.tdAgentIndex = 0
-		self.tdAgentStates = []
-		self.randomAgents = []
-		self.randomAgentIndex = 0
-		self.randomAgentStates = []
-		self.transitionalReward = 1000.
-		self.terminalReward = 2000
 
-	#tested	
-	def getDiscount(self):
-		return self.discount
+    def __init__(self):
+        self.states = [Terrain.terrain(), Terrain.terrain(), Terrain.terrain()]
+        self.finishPos = (float('inf'), float('inf'))
+        self.finalStates = []
+        self.livingReward = -1.
+        self.discount = 0.95
+        self.noise = 0
+        self.transitionalStates = [self.states[0][9][0], self.states[1][9][0]]
+        self.terminalState = self.states[2][9][0]
+        self.adpAgents = []
+        self.adpAgentIndex = 0
+        self.tdAgents = []
+        self.tdAgentIndex = 0
+        self.randomAgents = []
+        self.randomAgentIndex = 0
+        self.transitionalReward = 1000.
+        self.terminalReward = 2000
 
-	#tested
-	def setDiscount(self, disc):
-		self.discount = disc
+        for i in range(3):
+            self.finalStates.append(State.state(self.finishPos, Terrain.terrainObject()))
+            self.finalStates[-1].terrain.index = i
+    #tested    
+    def getDiscount(self):
+        return self.discount
 
-	#tested
-	def setNoise(self, noise):
-		self.noise = noise
-	
-	#tested
-	def getNoise(self):
-		return self.noise
+    #tested
+    def setDiscount(self, disc):
+        self.discount = disc
 
-	#tested
-	def setLivingReward(self, lr):
-		self.livingReward = lr
-	
-	#tested
-	def getLivingReward(self):
-		return self.livingReward
-	
-	#tested
-	def getActions(self, state):
-		x, y = state.getPosition()
-		actions = list()
-		if self.isTransitionalState(state) or self.isTerminalState(state):
-			return ['finish']
-		else:
-			if x != 0:
-				actions.append('west')
-			if x != 9:
-				actions.append('east')
-			if y != 0:
-				actions.append('north')
-			if y != 9:
-				actions.append('south')
-			return actions
-	#tested
-	def getWorldAgent(self, agent):
-		if agent.type == "adp":
-			return self.adpAgents[agent.index]
-		elif agent.type == "td":
-			return self.tdAgents[agent.index]
-		else:
-			return self.randomAgents[agent.index]
+    #tested
+    def setNoise(self, noise):
+        self.noise = noise
+    
+    #tested
+    def getNoise(self):
+        return self.noise
 
-	#tested
-	def getAgentState(self, agent):
-		newAgent = self.getWorldAgent(agent)
-		if newAgent.type == "adp":
-			return self.adpAgentStates[newAgent.index]
-		elif newAgent.type == "td":
-			return self.tdAgentStates[newAgent.index]
-		else:
-			return self.randomAgentStates[newAgent.index]
+    #tested
+    def setLivingReward(self, lr):
+        self.livingReward = lr
+    
+    #tested
+    def getLivingReward(self):
+        return self.livingReward
+    
+    #tested
+    def getActions(self, state):
+        x, y = state.getPosition()
+        actions = list()
+        if self.isTransitionalState(state) or self.isTerminalState(state):
+            return ['finish']
+        else:
+            if x != 0:
+                actions.append('west')
+            if x != 9:
+                actions.append('east')
+            if y != 0:
+                actions.append('north')
+            if y != 9:
+                actions.append('south')
+            return actions
 
-	#tested
-	def setAgentState(self, agent, state):
-		newAgent = self.getWorldAgent(agent)
-		if newAgent.type == "adp":
-			self.adpAgentStates[newAgent.index] = state
-		elif newAgent.type == "td":
-			self.tdAgentStates[newAgent.index] = state
-		else:
-			self.randomAgentStates[newAgent.index] = state
+    #tested
+    def getReward(self, agent, state):
+        if self.completedRace(state, 1):
+            return self.transitionalReward
+        elif self.completedRace(state, 2):
+            return self.terminalReward
+        else:        
+            x, y = state.getPosition()
+            manDist = (abs(y - 9) + abs(x - 0))
+            terrain = state.terrain
+            terrainElement = str(state.terrain)
+            rew = (terrain.getScore() * agent.skillLevels[terrainElement]) + manDist #* (2000000. if agent.type == "td" else 1.)
+            return self.livingReward / (rew * .1)
 
-	#tested
-	def getReward(self, agent, state):
-		newAgent = self.getWorldAgent(agent)
-		if self.completedRace(state, 1):
-			return self.transitionalReward
-		elif self.completedRace(state, 2):
-			return self.terminalReward
-		else:		
-			x, y = state.getPosition()
-			terrain = state.getWorld()
-			manDist = (abs(y - 9) + abs(x - 0))
-			terrainElement = repr(self.terrains[terrain].terrainWorld[x][y])
-                        rew = (self.terrains[terrain].terrainWorld[x][y].getScore() * newAgent.skillLevels[terrainElement]) + manDist #* (2000000. if agent.type == "td" else 1.)
-                        return self.livingReward / (rew * .1)
-	#tested
-	def getStartState(self, terrainNum = 0):
-		return State.state((0,9), terrainNum)
+    #tested
+    def getStartState(self, terrainNum = 0):
+        return self.states[terrainNum][0][9]
 
-	#tested
-	def isTransitionalState(self, state):
-		return state in self.transitionalStates
+    #tested
+    def isTransitionalState(self, state):
+        return state in self.transitionalStates
 
-	#tested
-	def isTerminalState(self, state):
-		return state == self.terminalState
+    #tested
+    def isTerminalState(self, state):
+        return state == self.terminalState
 
-	#tested
-	def generateNextStates(self, state, action):
-		if (self.isTerminalState(state) or self.isTransitionalState(state)) and action is 'finish':
-			return State.state((float("inf"), float("inf")), state.getWorld())
-		x, y = state.getPosition()
-		world = state.getWorld()
-		if action is 'east':
-			return State.state((x + 1, y), world)
-		if action is 'west':
-			return State.state((x - 1, y), world)
-		if action is 'north':
-			return State.state((x, y - 1), world)
-		if action is 'south':
-			return State.state((x, y + 1), world)
-		else:
-			raise "Error, invalid action"
-	#tested
-	def completedRace(self, state, worldNum = 0):
-		return state.getPosition() == (float("inf"), float("inf")) and state.getWorld() <= worldNum
+    #tested
+    def generateNextStates(self, state, action):
+        if (self.isTerminalState(state) or self.isTransitionalState(state)) and action is 'finish':
+            return self.finalStates[state.terrain.index]
+        x, y = state.getPosition()
+        index = state.terrain.index
+        if action is 'east':
+            return self.states[index][x+1][y]
+        if action is 'west':
+            return self.states[index][x-1][y]
+        if action is 'north':
+            return self.states[index][x][y-1]
+        if action is 'south':
+            return self.states[index][x][y+1]
+        else:
+            raise "Error, invalid action"
 
-	#tested
-	def addAgent(self, agent, skills=None):
-		newAgent = copy.deepcopy(agent)
-		if skills:
-			newAgent.skillLevels['water'   ] = skills['water'   ]
-			newAgent.skillLevels['grass'   ] = skills['grass'   ]
-			newAgent.skillLevels['forest'  ] = skills['forest'  ]
-			newAgent.skillLevels['mountain'] = skills['mountain']
-		else:
-			newAgent.skillLevels['water'] = random.random() + .5
-			newAgent.skillLevels['grass'] = random.random() + .5
-			newAgent.skillLevels['forest'] = random.random() + .5
-			newAgent.skillLevels['mountain'] = random.random() + .5
-		
-		if newAgent.type is "adp":
-			self.adpAgents.append(newAgent)
-			self.adpAgentStates.append(State.state())
-			agent.setIndex(self.adpAgentIndex)
-			newAgent.setIndex(self.adpAgentIndex)
-			self.adpAgentIndex += 1
-		
-		elif newAgent.type is "td":
-			self.tdAgents.append(newAgent)
-			self.tdAgentStates.append(State.state())
-			agent.setIndex(self.tdAgentIndex)
-			newAgent.setIndex(self.tdAgentIndex)
-			self.tdAgentIndex += 1
-		
-		else:
-			self.randomAgents.append(newAgent)
-			self.randomAgentStates.append(State.state())
-			agent.setIndex(self.randomAgentIndex)
-			newAgent.setIndex(self.randomAgentIndex)
-			self.randomAgentIndex += 1
-	
-	#tested
-	def moveAgent(self, agent, state, action):
-		newAgent = self.getWorldAgent(agent)
-		x, y = state.getPosition()
-		terrainElement = repr(self.terrains[state.getWorld()].terrainWorld[x][y])
-		chanceToFall = None
-		chanceToSlideDown = None
-		chanceToSlideLeft = None
-		if state in self.transitionalStates or state == self.terminalState:
-			self.setAgentState(newAgent, self.generateNextStates(state, action))
-		else:
-                        chanceToFall = abs(newAgent.skillLevels[terrainElement] - 1) / 2
-			x, y = state.getPosition()
-			chanceToSlideDown = 0.1 - ((0.1 / 10) * (abs(y -  0)))
-			chanceToSlideLeft = 0.1 - ((0.1 / 10) * (abs(x - 9)))
-                        #self.setAgentState(newAgent, self.generateNextStates(state, action))
+    #tested
+    def completedRace(self, state, worldNum = 0):
+        return state.getPosition() == (float("inf"), float("inf")) and state.terrain.index <= worldNum
+
+    #tested
+    def addAgent(self, agent, skills=None):
+        if skills:
+            agent.skillLevels['water'] = skills['water']
+            agent.skillLevels['grass'] = skills['grass']
+            agent.skillLevels['forest'] = skills['forest']
+            agent.skillLevels['mountain'] = skills['mountain']
+        else:
+            agent.skillLevels['water'] = random.random() + .5
+            agent.skillLevels['grass'] = random.random() + .5
+            agent.skillLevels['forest'] = random.random() + .5
+            agent.skillLevels['mountain'] = random.random() + .5
+        
+        if agent.type is "adp":
+            self.adpAgents.append(agent)
+            agent.setIndex(self.adpAgentIndex)
+            self.adpAgentIndex += 1
+        
+        elif agent.type is "td":
+            self.tdAgents.append(agent)
+            agent.setIndex(self.tdAgentIndex)
+            self.tdAgentIndex += 1
+        
+        else:
+            self.randomAgents.append(agent)
+            agent.setIndex(self.randomAgentIndex)
+            self.randomAgentIndex += 1
+    
+    #tested
+    def moveAgent(self, agent, state, action):
+        x, y = state.getPosition()
+        terrainElement = str(state.terrain)
+        chanceToFall = None
+        chanceToSlideDown = None
+        chanceToSlideLeft = None
+        if state in self.transitionalStates or state == self.terminalState:
+            agent.setState(self.generateNextStates(state, action))
+        else:
+            if terrainElement == 'mountain':
+                chanceToFall = abs(agent.skillLevels[terrainElement] - 1) / 2
+            else:
+                chanceToFall = abs(agent.skillLevels[terrainElement] - 1) / 4
+            x, y = state.getPosition()
+            chanceToSlideDown = 0.1 - ((0.1 / 10) * (abs(y -  0)))
+            chanceToSlideLeft = 0.1 - ((0.1 / 10) * (abs(x - 9)))
+                        #agent.setState(self.generateNextStates(state, action))
                         #return
-			#if random.random() <= chanceToSlideDown:
-			#	self.setAgentState(newAgent, State.state((x, min([9, y + 1])), state.getWorld()))
+            #if random.random() <= chanceToSlideDown:
+            #    agent.setState(State.state((x, min([9, y + 1])), state.getWorld()))
 
-			#elif random.random() <= chanceToSlideLeft:
-			#	self.setAgentState(newAgent, State.state((max([x - 1, 0]), y), state.getWorld()))
-			#if random.random() <= chanceToFall:
-			#	self.setAgentState(newAgent, State.state((max([x - 1, 0]), min([9, y + 1])), state.getWorld()))
-			#else:
-                        if True:
-				self.setAgentState(newAgent, self.generateNextStates(state, action))
+            #elif random.random() <= chanceToSlideLeft:
+            #    agent.setState(State.state((max([x - 1, 0]), y), state.getWorld()))
+            #if random.random() <= chanceToFall:
+            #    agent.setState(State.state((max([x - 1, 0]), min([9, y + 1])), state.getWorld()))
+            #else:
+            if True:
+                agent.setState(self.generateNextStates(state, action))
 
-	#tested
-	def getTerrainType(self, state):
-		x, y = state.getPosition()
-		return repr(self.terrains[state.getWorld()].terrainWorld[x][y])
-
-	#retested
-	def getAllPossibleSuccessors(self, state, action):
-		x, y = state.getPosition()
-		successors = list()
-		if action is 'finish':
-			return [State.state((float("inf"), float("inf")), state.getWorld())]
-		else:
-			if x >= 1:
-				successors.append(State.state((x - 1, y), state.getWorld()))
-			if y < 9:
-				successors.append(State.state((x, y + 1), state.getWorld()))
-			if x >= 1 and y < 9:
-				successors.append(State.state((x - 1, y + 1), state.getWorld()))
-			if x == 0 or y == 9:
-				successors.append(State.state((x, y), state.getWorld()))
-			successors.append(self.generateNextStates(state, action))
-			return successors
+    #retested
+    def getAllPossibleSuccessors(self, state, action):
+        x, y = state.getPosition()
+        index = state.terrain.index
+        successors = list()
+        if action is 'finish':
+            return [self.finalStates[index]]
+        else:
+            if x >= 1:
+                successors.append(self.states[index][x-1][y])
+            if y < 9:
+                successors.append(self.states[index][x][y+1])
+            if x >= 1 and y < 9:
+                successors.append(self.states[index][x-1][y+1])
+            if x == 0 or y == 9:
+                successors.append(self.states[index][x][y])
+            successors.append(self.generateNextStates(state, action))
+            return successors
 
 
 # test = gameWorld()
 # for world in test.terrains:
-# 	world.showTerrain()
+#     world.showTerrain()
 
 # print "noise: ", test.getNoise()
 # test.setNoise(1)
@@ -260,7 +225,7 @@ class gameWorld(object):
 # print "Actions from start state: ", test.getActions(test.getStartState())
 
 # for action in test.getActions(test.getStartState()):
-# 	print "going " + action + " from " + str(test.getStartState()) + " puts us " + str(test.generateNextStates(test.getStartState(), action))
+# print "going " + action + " from " + str(test.getStartState()) + " puts us " + str(test.generateNextStates(test.getStartState(), action))
 # print "\n"
 # print "Terminal Actions: ", test.getActions(State.state((9,0), 2))
 # print "\n"

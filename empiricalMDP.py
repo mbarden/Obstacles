@@ -82,7 +82,7 @@ class EmpiricalMDP:
             raise "Illegal action!"
 
         x, y = state.getPosition()
-        w = state.getWorld()
+        t = state.terrain
 
         if action == 'finish':
             return [(state, 1)]
@@ -92,48 +92,44 @@ class EmpiricalMDP:
 
         chanceToSlideLeft = 0.1 - (0.01 * (abs(x - 9)))
         if x != 9:
-            possibles[State.state((x+1,y),w)]   += chanceToSlideLeft
+            possibles[State.state((x+1,y),t)]   += chanceToSlideLeft
         else:
             possibles[state]                    += chanceToSlideLeft
 
 
         chanceToSlideDown = 0.1 - (0.01 * (abs(y - 0)))
         if y != 0:
-            possibles[State.state((x,y-1),w)]   += chanceToSlideDown
+            possibles[State.state((x,y-1),t)]   += chanceToSlideDown
         else:
             possibles[state]                    += chanceToSlideDown
 
 
         terrainElement = state.getTerrainType()
-        if terrainElement == 'grass':
-            chanceToFall = abs(self.skills['grass'] - 1) / 4
-        elif terrainElement == 'water':
-            chanceToFall = abs(self.skills['water'] - 1) / 4
-        elif terrainElement == 'forest':
-            chanceToFall = abs(self.skills['forest'] - 1) / 4
+        if terrainElement == 'mountain':
+            chanceToFall = abs(self.skills[terrainElement] - 1) / 2
         else:
-            chanceToFall = abs(self.skills['mountain'] - 1) / 2
+            chanceToFall = abs(self.skills[terrainElement] - 1) / 2
 
         if x != 9 and y != 0:
-            possibles[State.state((x+1,y-1),w)] += chanceToFall
+            possibles[State.state((x+1,y-1),t)] += chanceToFall
         elif x != 9:
-            possibles[State.state((x+1,y  ),w)] += chanceToFall
+            possibles[State.state((x+1,y  ),t)] += chanceToFall
         elif y != 0:
-            possibles[State.state((x  ,y-1),w)] += chanceToFall
+            possibles[State.state((x  ,y-1),t)] += chanceToFall
         elif x == 9 and y == 0:
-            possibles[State.state((x  ,y  ),w)] += chanceToFall
+            possibles[State.state((x  ,y  ),t)] += chanceToFall
         else:
             raise 'didnt account for this'
 
 
         if action == 'north':
-            newState = State.state((x  ,y-1),w)
+            newState = State.state((x  ,y-1),t)
         if action == 'east':
-            newState = State.state((x+1,y  ),w)
+            newState = State.state((x+1,y  ),t)
         if action == 'west':
-            newState = State.state((x-1,y  ),w)
+            newState = State.state((x-1,y  ),t)
         if action == 'south':
-            newState = State.state((x  ,y+1),w)
+            newState = State.state((x  ,y+1),t)
         possibles[newState] += 1 - (chanceToFall + chanceToSlideLeft + chanceToSlideDown)
 
         # Probabilities must sum to 1
